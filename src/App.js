@@ -5,36 +5,59 @@ import { ReactComponent as ChevronLeft } from './chevron-left.svg'
 import { ReactComponent as ChevronRight } from './chevron-right.svg'
 
 function App() {
+
   const [searchResult, setSearchResult] = useState()
 
-  useEffect(() => {
-    const search = async () => {
-      const response = await fetch(
-        'http://www.omdbapi.com/?apikey=a461e386&s=king',
-      )
+  const [page, setPage] = useState(1)
+  const [input, setInput] = useState("")
 
-      const data = await response.json()
-
-      if (!searchResult) {
-        setSearchResult(data)
+  useEffect(()=>{
+    //if we open a new page input is empty so the program skip this
+    if(input){
+      const changePage = async () => {
+        const response = await fetch(
+          `http://www.omdbapi.com/?apikey=a461e386&s=${input}&page=${page}`,
+        )
+        
+        const data = await response.json();
+        
+        if(data!==undefined){
+          setSearchResult(data);
+        }
       }
+      changePage();
+      
     }
+   },[page])
+  
+  //It will update the input character by character
+  const inputWriter = (str) =>{
+    setInput(str);
+  }
 
-    search()
-  })
-
+  //When we press search we take the input we have and we make the first query 
+  const search = async () =>{
+      const response = await fetch(
+        `http://www.omdbapi.com/?apikey=a461e386&s=${input}`,
+      )
+      const data = await response.json();
+      setSearchResult(data);
+  }
+ 
+ 
+  
   return (
     <div className="App">
       <div className="search">
-        <input type="text" placeholder="Search..." />
-        <button>Search</button>
+        <input type="text" placeholder="Search..." value={input} onChange={(e) => inputWriter(e.target.value)}/>
+        <button onClick={search}>Search</button>
       </div>
       {!searchResult ? (
         <p>No results yet</p>
       ) : (
         <div className="search-results">
           <div className="chevron">
-            <ChevronLeft />
+            { (page > 1) && (<ChevronLeft onClick={()=> setPage(page - 1)} />) }
           </div>
           <div className="search-results-list">
             {searchResult.Search.map(result => (
@@ -51,7 +74,7 @@ function App() {
             ))}
           </div>
           <div className="chevron">
-            <ChevronRight />
+          {searchResult.Search.length > 9 &&(<ChevronRight onClick={()=> setPage(page + 1)}/>)}
           </div>
         </div>
       )}
