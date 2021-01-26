@@ -42,8 +42,7 @@ function App() {
       )
       const data = await response.json();
       setSearchResult(data);
-  }
- 
+  } 
  
   
   return (
